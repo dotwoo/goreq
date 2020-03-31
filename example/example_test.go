@@ -1,22 +1,11 @@
 package goreq_test
 
 import (
-	//	"bytes"
-	//	"encoding/base64"
 	"fmt"
-	//	"io/ioutil"
 	"net/http"
-	//	"net/http/httptest"
-	//	"net/url"
-	//	"strings"
-	//	"testing"
-	//	"time"
-	//
-	//	"github.com/elazarl/goproxy"
-	//	"encoding/json"
 	"strings"
 
-	"github.com/smallnest/goreq"
+	"github.com/dotwoo/goreq"
 )
 
 func ExampleGoReq_SetClient() {
