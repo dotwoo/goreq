@@ -823,16 +823,16 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 			req, err = http.NewRequest(gr.Method, gr.URL, contentReader)
 		} else if gr.Header["Content-Type"] == "application/x-www-form-urlencoded" { //form
 			formData := changeMapToURLValues(gr.Data)
-			req, err = http.NewRequest(gr.Method, gr.URL, strings.NewReader(formData.Encode()))
-		} else if len(gr.RawBytesData) > 0 { //raw bytes
-			req, err = http.NewRequest(gr.Method, gr.URL, bytes.NewReader(gr.RawBytesData))
-		} else { //raw string
-			req, err = http.NewRequest(gr.Method, gr.URL, strings.NewReader(gr.RawStringData))
+			gr.RawBytesData = []byte(formData.Encode())
+		} else if len(gr.RawStringData) > 0 { //raw string
+			gr.RawBytesData = []byte(gr.RawStringData)
 		}
-	case GET, HEAD, DELETE, OPTIONS:
 		req, err = http.NewRequest(gr.Method, gr.URL, nil)
-
+	case GET, HEAD, DELETE, OPTIONS:
+		gr.RawBytesData = nil
+		req, err = http.NewRequest(gr.Method, gr.URL, nil)
 	default:
+		gr.RawBytesData = nil
 		gr.Errors = append(gr.Errors, errors.New("No method specified"))
 		return nil, nil, gr.Errors
 	}
@@ -939,6 +939,10 @@ func (gr *GoReq) Retry(retryCount int, retryTimeout int, retryOnHTTPStatus []int
 }
 
 func (gr *GoReq) retryDo(req *http.Request, retryCount int) (resp Response, err error) {
+	if len(gr.RawBytesData) > 0 {
+		req.Body = ioutil.NopCloser(bytes.NewBuffer(gr.RawBytesData))
+	}
+
 	r, err := gr.Client.Do(req)
 
 	if retryCount == 0 {
