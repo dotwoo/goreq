@@ -90,21 +90,25 @@ type GoReq struct {
 type RetryConfig struct {
 	//Max retry count
 	RetryCount int
-	//Retry timeout
-	RetryTimeout int
+	//Retry timeout (seconds)
+	RetryTimeout time.Duration
 	// Retry only when received those http status
 	RetryOnHTTPStatus []int
 }
 
 // New returns a new GoReq object.
 func New() *GoReq {
+	ht, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		ht = &http.Transport{}
+	}
 	gr := &GoReq{
 		Data:             make(map[string]interface{}),
 		Header:           make(map[string]string),
 		FormData:         url.Values{},
 		QueryData:        url.Values{},
 		Client:           nil,
-		Transport:        &http.Transport{},
+		Transport:        ht,
 		Cookies:          make([]*http.Cookie, 0),
 		Errors:           nil,
 		BasicAuth:        struct{ Username, Password string }{},
@@ -933,7 +937,7 @@ func initRequest(req *http.Request, gr *GoReq) {
 //    Retry(3, 100, nil).
 //    End()
 //
-func (gr *GoReq) Retry(retryCount int, retryTimeout int, retryOnHTTPStatus []int) *GoReq {
+func (gr *GoReq) Retry(retryCount int, retryTimeout time.Duration, retryOnHTTPStatus []int) *GoReq {
 	gr.retry = &RetryConfig{RetryCount: retryCount, RetryTimeout: retryTimeout, RetryOnHTTPStatus: retryOnHTTPStatus}
 	return gr
 }
@@ -961,7 +965,7 @@ func (gr *GoReq) retryDo(req *http.Request, retryCount int) (resp Response, err 
 		for _, s := range gr.retry.RetryOnHTTPStatus {
 			if r.StatusCode == s {
 				if gr.retry.RetryTimeout > 0 {
-					time.Sleep(time.Duration(gr.retry.RetryTimeout) * time.Second)
+					time.Sleep(gr.retry.RetryTimeout)
 				}
 				resp, err = gr.retryDo(req, retryCount-1)
 				return
