@@ -947,7 +947,7 @@ func (gr *GoReq) retryDo(req *http.Request, retryCount int) (resp Response, err 
 	}
 
 	if gr.retry.RetryOnHTTPStatus == nil {
-		if r.StatusCode >= 200 {
+		if r != nil && r.StatusCode >= 200 {
 			resp = r
 			return
 		}
