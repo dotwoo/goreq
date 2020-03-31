@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/dotwoo/goreq"
 )
@@ -135,6 +136,23 @@ func ExampleGoReq_Patch() {
 	fmt.Println(resp.StatusCode == 200)
 	fmt.Println(len(err) == 0)
 	fmt.Println(strings.Contains(body, "Jerry"))
+	// Output:
+	// true
+	// true
+	// true
+}
+
+func ExampleGoReq_Timeout() {
+	resp, body, err := goreq.New().
+		Post("http://httpbin.org/post").
+		Retry(2, 100*time.Millisecond, nil).
+		Timeout(1000 * time.Millisecond).ConTimeout(1 * time.Millisecond).
+		SendRawString("hello world").
+		End()
+
+	fmt.Println(resp)
+	fmt.Println(err)
+	fmt.Println(strings.Contains(body, "hello world"))
 	// Output:
 	// true
 	// true

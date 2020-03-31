@@ -83,6 +83,7 @@ type GoReq struct {
 	CurlCommand      bool
 	logger           *log.Logger
 	retry            *RetryConfig
+	timeout          time.Duration
 	bindResponseBody interface{}
 }
 
@@ -116,6 +117,7 @@ func New() *GoReq {
 		CurlCommand:      false,
 		logger:           log.New(os.Stderr, "[goreq]", log.LstdFlags),
 		retry:            &RetryConfig{RetryCount: 0, RetryTimeout: 0, RetryOnHTTPStatus: nil},
+		timeout:          0,
 		bindResponseBody: nil,
 	}
 	return gr
@@ -480,8 +482,8 @@ func (gr *GoReq) Socks5(network, addr string, auth *proxy.Auth, forward proxy.Di
 	return gr
 }
 
-// Timeout is used to set timeout for connections.
-func (gr *GoReq) Timeout(timeout time.Duration) *GoReq {
+// ConTimeout is used to set timeout for connections.
+func (gr *GoReq) ConTimeout(timeout time.Duration) *GoReq {
 	gr.Transport.Dial = func(network, addr string) (net.Conn, error) {
 		conn, err := net.DialTimeout(network, addr, timeout)
 		if err != nil {
@@ -491,6 +493,12 @@ func (gr *GoReq) Timeout(timeout time.Duration) *GoReq {
 		conn.SetDeadline(time.Now().Add(timeout))
 		return conn, nil
 	}
+	return gr
+}
+
+// Timeout is used to set timeout for all request process.
+func (gr *GoReq) Timeout(timeout time.Duration) *GoReq {
+	gr.timeout = timeout
 	return gr
 }
 
@@ -926,6 +934,10 @@ func initRequest(req *http.Request, gr *GoReq) {
 
 	// Set Transport
 	gr.Client.Transport = gr.Transport
+
+	if gr.timeout > 0 {
+		gr.Client.Timeout = gr.timeout
+	}
 }
 
 // Retry is used to retry to send requests if servers return unexpected status.
