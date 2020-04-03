@@ -1,5 +1,7 @@
 # goreq
-[![GoDoc](https://godoc.org/github.com/smallnest/goreq?status.png)](http://godoc.org/github.com/smallnest/goreq) [![Drone Build Status](https://drone.io/github.com/smallnest/goreq/status.png)](https://drone.io/github.com/smallnest/goreq/latest) [![Go Report Card](http://goreportcard.com/badge/smallnest/goreq)](http://goreportcard.com/report/smallnest/goreq)
+[![GoDoc](https://godoc.org/github.com/dotwoo/goreq?status.png)](http://godoc.org/github.com/dotwoo/goreq) [![Drone Build Status](https://drone.io/github.com/dotwoo/goreq/status.png)](https://drone.io/github.com/dotwoo/goreq/latest) [![Go Report Card](http://goreportcard.com/badge/smallnest/goreq)](http://goreportcard.com/report/smallnest/goreq)
+
+The project is forked from [smallnest/goreq](https://github.com/smallnest/goreq)
 
 A Simplified Http Client. Its initial codes are cloned from [HttpRequest](https://github.com/parnurzeal/gorequest). I have refactored the codes and make it more friendly to programmers.  And some bugs are fixed and new features are added.
 
@@ -14,7 +16,7 @@ You can see the release notes for details.
 ## Installation
 
 ```sh
-$ go get github.com/smallnest/goreq
+$ go get github.com/dotwoo/goreq
 ```
 
 ## Usage
@@ -114,17 +116,30 @@ resp, body, errs := request.Get("http://example-proxy.com").End()
 
 _Socks5_ will be supported in future.
 
-### Timeout
-Timeout can be set in any time duration using time package:
+### ConTimeout
+
+ConTimeout can be set in any time duration using time package:
 
 ```go
-request := goreq.New().Timeout(2*time.Millisecond)
+request := goreq.New().ConTimeout(2*time.Millisecond)
 resp, body, errs:= request.Get("http://example.com").End()
 ```
 
-Timeout func defines both dial + read/write timeout to the specified time parameter.
+ConTimeout func defines both dial + read/write timeout to the specified time parameter.
+
+### Timeout
+
+Timeout can be set in any time duration using time package:
+
+```go
+request := goreq.New().Timeout(2*time.Second)
+resp, body, errs:= request.Get("http://example.com").End()
+```
+
+Timeout func defines the http client timeout to the specified time parameter.
 
 ### SSL
+
 ### Basic Auth
 To add a basic authentication header:
 
@@ -299,9 +314,10 @@ You can set a retry value and GoReq will retry until the value if it fails. So g
 
 ```go
 _, _, err := New().Get(ts.URL).
-    Retry(3, 100, nil).
+    Retry(3, time.Second, nil).
     End()
 ```
 
 ## License
+
 goreq is MIT License.
