@@ -10,6 +10,6 @@ install:
   - go get golang.org/x/net/publicsuffix
 notifications:
   email:
-    recipients: smallnest@gmail.com
+    recipients: dotwoo@gmail.com
     on_success: change
     on_failure: always
