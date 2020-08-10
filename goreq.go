@@ -833,13 +833,15 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 			contentJSON, _ := json.Marshal(gr.Data)
 			contentReader := bytes.NewReader(contentJSON)
 			req, err = http.NewRequest(gr.Method, gr.URL, contentReader)
-		} else if gr.Header["Content-Type"] == "application/x-www-form-urlencoded" { //form
-			formData := changeMapToURLValues(gr.Data)
-			gr.RawBytesData = []byte(formData.Encode())
-		} else if len(gr.RawStringData) > 0 { //raw string
-			gr.RawBytesData = []byte(gr.RawStringData)
+		} else {
+			if gr.Header["Content-Type"] == "application/x-www-form-urlencoded" { //form
+				formData := changeMapToURLValues(gr.Data)
+				gr.RawBytesData = []byte(formData.Encode())
+			} else if len(gr.RawStringData) > 0 { //raw string
+				gr.RawBytesData = []byte(gr.RawStringData)
+			}
+			req, err = http.NewRequest(gr.Method, gr.URL, nil)
 		}
-		req, err = http.NewRequest(gr.Method, gr.URL, nil)
 	case GET, HEAD, DELETE, OPTIONS:
 		gr.RawBytesData = nil
 		req, err = http.NewRequest(gr.Method, gr.URL, nil)
@@ -847,6 +849,10 @@ func (gr *GoReq) EndBytes(callback ...func(response Response, body []byte, errs 
 		gr.RawBytesData = nil
 		gr.Errors = append(gr.Errors, errors.New("No method specified"))
 		return nil, nil, gr.Errors
+	}
+
+	if err != nil {
+		return nil, nil, []error{err}
 	}
 	initRequest(req, gr)
 
